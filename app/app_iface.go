@@ -879,6 +879,7 @@ type AppIface interface {
 	PluginCommandsForTeam(teamID string) []*model.Command
 	PostActionCookieSecret() []byte
 	PostAddToChannelMessage(c *request.Context, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError
+	PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, *model.AppError)
 	PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch
 	PostUpdateChannelDisplayNameMessage(c *request.Context, userID string, channel *model.Channel, oldChannelDisplayName, newChannelDisplayName string) *model.AppError
 	PostUpdateChannelHeaderMessage(c *request.Context, userID string, channel *model.Channel, oldChannelHeader, newChannelHeader string) *model.AppError

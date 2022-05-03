@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 )
@@ -41,6 +42,14 @@ type TopChannelList struct {
 	Items []*TopChannel `json:"items"`
 }
 
+func (t *TopChannelList) ChannelIDs() []string {
+	var ids []string
+	for _, item := range t.Items {
+		ids = append(ids, item.ID)
+	}
+	return ids
+}
+
 type TopChannel struct {
 	ID           string      `json:"id"`
 	Type         ChannelType `json:"type"`
@@ -48,6 +57,23 @@ type TopChannel struct {
 	Name         string      `json:"name"`
 	TeamID       string      `json:"team_id"`
 	MessageCount int64       `json:"message_count"`
+}
+
+type DailyPostCount struct {
+	ChannelID string    `db:"channelid" json:"channel_id"`
+	Date      time.Time `db:"day" json:"-"`
+	PostCount int       `db:"postcount" json:"post_count"`
+}
+
+func (d *DailyPostCount) MarshalJSON() ([]byte, error) {
+	type Alias DailyPostCount
+	return json.Marshal(&struct {
+		Date string `json:"day"`
+		*Alias
+	}{
+		Date:  d.Date.Format("2006-01-02"),
+		Alias: (*Alias)(d),
+	})
 }
 
 // GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.

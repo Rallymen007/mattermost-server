@@ -13,6 +13,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -4254,4 +4255,52 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 	}
 
 	return model.GetTopChannelListWithPagination(channels, limit), nil
+}
+
+func (s SqlChannelStore) PostCountsByDay(channelIDs []string, sinceUnixMillis int64) ([]*model.DailyPostCount, error) {
+	dailyPostCounts := make([]*model.DailyPostCount, 0)
+
+	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
+	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
+
+	query := `
+	SELECT
+		Posts.ChannelId AS channelid,
+		to_timestamp(Posts.CreateAt / 1000) :: date AS day,
+		count(Posts.Id) AS postcount
+	FROM
+		Posts
+		LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+	WHERE
+		Posts.DeleteAt = 0
+		AND Posts.CreateAt > ?
+		AND Posts.Type = ''
+		`
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query += mySqlPropsQuery
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		query += postgresPropQuery
+	}
+
+	query += ` 
+	AND Channels.id IN (?)
+	GROUP BY
+		channelid,
+		day
+	ORDER BY
+		channelid,
+		day
+	`
+
+	args := []interface{}{sinceUnixMillis, channelIDs}
+	query, args, err := sqlx.In(query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse query")
+	}
+
+	if err := s.GetReplicaX().Select(&dailyPostCounts, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get post counts by day")
+	}
+
+	return dailyPostCounts, nil
 }

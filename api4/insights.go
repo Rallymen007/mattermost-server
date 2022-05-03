@@ -146,7 +146,20 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	js, jsonErr := json.Marshal(topChannels)
+	// as of this point it is expected that the channel ids have already been authorized to be viewed by the current user
+	postCountsByDay, err := c.App.PostCountsByDay(topChannels.ChannelIDs(), startTime)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	js, jsonErr := json.Marshal(struct {
+		*model.TopChannelList
+		PostCountsByDay []*model.DailyPostCount `json:"daily_post_counts"`
+	}{
+		topChannels,
+		postCountsByDay,
+	})
 	if jsonErr != nil {
 		c.Err = model.NewAppError("getTopChannelsForTeamSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 		return
