@@ -68,7 +68,7 @@ func (r *notificationRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegist
 	// block
 	reg.Register(ast.KindDocument, r.renderDefault)
 	reg.Register(ast.KindHeading, r.renderItem)
-	reg.Register(ast.KindBlockquote, r.renderDefault)
+	//reg.Register(ast.KindBlockquote, r.renderDefault)
 	reg.Register(ast.KindCodeBlock, r.renderCodeBlock)
 	reg.Register(ast.KindFencedCodeBlock, r.renderFencedCodeBlock)
 	reg.Register(ast.KindHTMLBlock, r.renderDefault)
