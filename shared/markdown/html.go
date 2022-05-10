@@ -71,11 +71,11 @@ func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, i
 		}
 		result += "</li>"
 	case *BlockQuote:
-		result += "<blockquote>"
+		//result += "<blockquote>"
 		for _, block := range v.Children {
 			result += RenderBlockHTML(block, referenceDefinitions)
 		}
-		result += "</blockquote>"
+		//result += "</blockquote>"
 	case *FencedCode:
 		if info := v.Info(); info != "" {
 			language := strings.Fields(info)[0]

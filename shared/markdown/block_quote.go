@@ -35,7 +35,7 @@ func (b *BlockQuote) AddChild(openBlocks []Block) []Block {
 }
 
 func blockQuoteStart(markdown string, indent int, r Range) []Block {
-	/*if indent > 3 {
+	if indent > 3 {
 		return nil
 	}
 	s := markdown[r.Position:r.End]
@@ -58,6 +58,5 @@ func blockQuoteStart(markdown string, indent int, r Range) []Block {
 		block.Children = append(block.Children, descendants[0])
 		ret = append(ret, descendants...)
 	}
-	return ret*/
-	return nil
+	return ret
 }
